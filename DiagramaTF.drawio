@@ -1,0 +1,46 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15" version="28.2.9">
+  <diagram name="Page-1" id="xCK24C6t1HkDURee0jkj">
+    <mxGraphModel dx="1817" dy="1734" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-1" value="Orchestrator" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+          <mxGeometry x="320" y="320" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" parent="1" source="nxYAwErhinr5Q5IE8kyz-2" target="nxYAwErhinr5Q5IE8kyz-7" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="nxYAwErhinr5Q5IE8kyz-2" target="nxYAwErhinr5Q5IE8kyz-6" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=block;startFill=1;" parent="1" source="nxYAwErhinr5Q5IE8kyz-2" target="nxYAwErhinr5Q5IE8kyz-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-2" value="Orchestrator" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+          <mxGeometry x="-280" y="-80" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-3" value="Core Nodes" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+          <mxGeometry x="-40" y="-80" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="nxYAwErhinr5Q5IE8kyz-4" target="nxYAwErhinr5Q5IE8kyz-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-4" value="Frontend" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+          <mxGeometry x="-520" y="-80" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-6" value="DB Mongo" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+          <mxGeometry x="-360" y="120" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-7" value="DB Redis" style="whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
+          <mxGeometry x="-200" y="120" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-11" value="Escenario:&lt;div&gt;Concurrente&lt;/div&gt;&lt;div&gt;Distribuido&lt;/div&gt;&lt;div&gt;Maybe GPU?&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-45" y="-140" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nxYAwErhinr5Q5IE8kyz-12" value="Escenario:&lt;div&gt;TCP&lt;/div&gt;&lt;div&gt;GRPC&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-160" y="-90" width="90" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,28 @@
+services:
+  orchestrator:
+    build: .
+    container_name: orchestrator
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: default
+    ports:
+      - 27017:27017
+    volumes: 
+      - ./data/:/data/db/
+
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - cache:/data
+
+volumes:
+    cache:
+      driver: local
