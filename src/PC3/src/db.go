@@ -17,10 +17,10 @@ func createCollectionsIfExist(ctx context.Context, db *mongo.Database) error {
 			"required":             bson.A{"_id", "title", "genres"},
 			"additionalProperties": false,
 			"properties": bson.M{
-				"_id":    bson.M{"bsonType": "int"},
-				"imdbId": bson.M{"bsonType": "int"},
-				"tmdbId": bson.M{"bsonType": "int"},
-				"title":  bson.M{"bsonType": "string"},
+				"_id":   bson.M{"bsonType": "int"},
+				"imdb":  bson.M{"bsonType": "int"},
+				"tmdb":  bson.M{"bsonType": "int"},
+				"title": bson.M{"bsonType": "string"},
 				"genres": bson.M{"bsonType": "array",
 					"items": bson.M{"bsonType": "string"},
 				},
@@ -62,7 +62,7 @@ func createCollectionsIfExist(ctx context.Context, db *mongo.Database) error {
 		return err
 	}
 
-	if err := ensureCollection(ctx, db, "tag", tagSchema); err != nil {
+	if err := ensureCollection(ctx, db, "tags", tagSchema); err != nil {
 		return err
 	}
 
@@ -76,7 +76,6 @@ func ensureCollection(ctx context.Context, db *mongo.Database, name string, vali
 	if err := db.CreateCollection(ctx, name, createOpts); err != nil {
 		var cmdErr mongo.CommandError
 		if errors.As(err, &cmdErr) && cmdErr.Code == 48 { // NamespaceExists
-			// Update validator on existing collection
 			cmd := bson.D{
 				{Key: "collMod", Value: name},
 				{Key: "validator", Value: validator},
@@ -85,7 +84,6 @@ func ensureCollection(ctx context.Context, db *mongo.Database, name string, vali
 			}
 			return db.RunCommand(ctx, cmd).Err()
 		}
-		// Some other error occurred creating the collection
 		return err
 	}
 	return nil

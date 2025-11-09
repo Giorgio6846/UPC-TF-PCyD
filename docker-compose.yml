@@ -1,7 +1,20 @@
 services:
   orchestrator:
-    build: .
-    container_name: orchestrator
+    build: 
+      context: src/PC3
+      dockerfile: Dockerfile
+    environment:
+      MONGODB_URI: "mongodb://user:pass@mongo:27017/?authSource=admin"
+      MOVIE_CSV_PATH:  "/data/csv/movies.csv"
+      RATING_CSV_PATH: "/data/csv/ratings.csv"
+      TAGS_CSV_PATH:   "/data/csv/tags.csv"
+      LINKS_CSV_PATH:   "/data/csv/links.csv"
+    ports:
+      - 8080:8080
+    volumes: 
+      - ./data/ml-25m:/data/csv/
+
+
   mongo:
     image: mongo
     restart: always
@@ -12,7 +25,7 @@ services:
     ports:
       - 27017:27017
     volumes: 
-      - ./data/:/data/db/
+      - ./data/mongo:/data/db/
 
   redis:
     image: redis:6.2-alpine

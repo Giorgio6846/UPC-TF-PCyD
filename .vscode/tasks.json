@@ -11,7 +11,7 @@
         {
             "label": "Docker Compose Up",
             "type": "shell",
-            "command": "docker compose -f ${workspaceFolder}/src/PC3/docker-compose.yml up --build --detach",
+            "command": "docker compose -f ${workspaceFolder}/docker-compose.yml up --build --detach",
             "problemMatcher": []
         },
         {
