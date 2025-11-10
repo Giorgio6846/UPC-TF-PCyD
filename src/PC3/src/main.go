@@ -28,13 +28,15 @@ func main() {
 		log.Fatalf("appendDataToDB failed: %v", err)
 	}
 
-	setupAPI()
+	setupAPI(db)
 	if err = http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println("Couldn't setup the server", err)
 	}
 	log.Println("HTTP listening at :8080")
 }
 
-func setupAPI() {
-	http.HandleFunc("/api1", api1)
+func setupAPI(db *mongo.Database) {
+	http.HandleFunc("/similarMovies", func(w http.ResponseWriter, r *http.Request) {
+		movieSearcher(w, r, db)
+	})
 }
