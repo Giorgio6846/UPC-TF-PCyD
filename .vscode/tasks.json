@@ -20,17 +20,6 @@
             "command": "docker compose down",
             "problemMatcher": []
         },
-        {
-            "label": "Run PC3 (Go)",
-            "type": "shell",
-            "command": "go run .",
-            "options": {
-                "cwd": "${workspaceFolder}/src/PC3",
-                "env": {
-                    "MONGODB_URI": "mongodb://user:pass@localhost:27017/?authSource=admin"
-                }
-            },
-            "problemMatcher": []
-        }
+
     ]
 }
