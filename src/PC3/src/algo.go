@@ -10,6 +10,12 @@ type neighbor struct {
 	Score  float64
 }
 
+type recommended struct {
+	MovieID int
+	Score   float64
+	Count   int
+}
+
 func buildUserVectors(ratings []Rating) (map[int]map[int]float64, map[int]float64) {
 	userVec := make(map[int]map[int]float64)
 
@@ -72,4 +78,82 @@ func topKUsers(user int, userVecs map[int]map[int]float64, norms map[int]float64
 		out = out[:K]
 	}
 	return out
+}
+
+func RecommendFromTopK(
+	target int,
+	neighbors []neighbor,
+	userVec map[int]map[int]float64,
+	topN int,
+	minAbsSim float64,
+	minNeighborsPerItem int,
+) []recommended {
+	userMean := userMeans(userVec)
+
+	seen := make(map[int]bool, len(userVec[target]))
+	for m := range userVec[target] {
+		seen[m] = true
+	}
+
+	type agg struct {
+		num, den float64
+		cnt      int
+	}
+	score := make(map[int]*agg)
+	for _, nb := range neighbors {
+		if math.Abs(nb.Score) < minAbsSim {
+			continue
+		}
+		rv := userVec[nb.UserID]
+		if rv == nil {
+			continue
+		}
+		mv := userMean[nb.UserID]
+		for mid, r := range rv {
+			if seen[mid] {
+				continue
+			}
+			a := score[mid]
+			if a == nil {
+				a = &agg{}
+				score[mid] = a
+			}
+			a.num += nb.Score * (r - mv)
+			a.den += math.Abs(nb.Score)
+			a.cnt++
+		}
+	}
+
+	recs := make([]recommended, 0, len(score))
+	mu := userMean[target]
+	for mid, a := range score {
+		if a.den == 0 || a.cnt < minNeighborsPerItem {
+			continue
+		}
+		pred := mu + (a.num / a.den)
+		recs = append(recs, recommended{MovieID: mid, Score: pred, Count: a.cnt})
+	}
+
+	sort.Slice(recs, func(i, j int) bool {
+		if recs[i].Score == recs[j].Score {
+			return recs[i].Count > recs[j].Count
+		}
+		return recs[i].Score > recs[j].Score
+	})
+	if topN > 0 && topN < len(recs) {
+		return recs[:topN]
+	}
+	return recs
+}
+
+func userMeans(userVec map[int]map[int]float64) map[int]float64 {
+	m := make(map[int]float64, len(userVec))
+	for uid, vec := range userVec {
+		var s float64
+		for _, r := range vec {
+			s += r
+		}
+		m[uid] = s / float64(len(vec))
+	}
+	return m
 }

@@ -238,6 +238,48 @@ func fetchRating(ctx context.Context, db *mongo.Database) ([]Rating, error) {
 	return out, cur.Err()
 }
 
+// fetchMoviesMap returns a map from movieID -> Movie for the provided IDs.
+// Performs a single query using $in to fetch all matching movie documents.
+func fetchMoviesMap(ctx context.Context, db *mongo.Database, ids []int) (map[int]Movie, error) {
+	if len(ids) == 0 {
+		return map[int]Movie{}, nil
+	}
+
+	// Build interface slice of ids for BSON $in
+	var idInterfaces []interface{}
+	for _, id := range ids {
+		idInterfaces = append(idInterfaces, id)
+	}
+
+	filter := bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: idInterfaces}}}}
+	proj := bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "title", Value: 1},
+		{Key: "genres", Value: 1},
+		{Key: "imdb", Value: 1},
+		{Key: "tmdb", Value: 1},
+	}
+
+	cur, err := db.Collection("movies").Find(ctx, filter, options.Find().SetProjection(proj))
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	out := make(map[int]Movie)
+	for cur.Next(ctx) {
+		var m Movie
+		if err := cur.Decode(&m); err != nil {
+			return nil, err
+		}
+		out[int(m.ID)] = m
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func userExists(ctx context.Context, db *mongo.Database, userID int) (bool, error) {
 	n, err := db.Collection("ratings").CountDocuments(ctx, bson.D{{Key: "userId", Value: userID}})
 	if err != nil {
