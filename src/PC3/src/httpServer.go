@@ -27,7 +27,7 @@ type responseJSON struct {
 	TimeAlgoMs  int64             `json:"timeAlgoMs"`
 }
 
-func movieSearcherSeq(w http.ResponseWriter, r *http.Request, db *mongo.Database) {
+func movieSearcherSeq(w http.ResponseWriter, r *http.Request, db *mongo.Database, ratings []Rating) {
 	fmt.Println("/similarMoviesSeq was requested")
 
 	userId := r.URL.Query().Get("userId")
@@ -51,15 +51,6 @@ func movieSearcherSeq(w http.ResponseWriter, r *http.Request, db *mongo.Database
 	mongoDuration += time.Since(t0)
 	if !exists {
 		http.Error(w, "user not found", http.StatusNotFound)
-		return
-	}
-
-	// fetch ratings (mongo)
-	t0 = time.Now()
-	ratings, err := fetchRating(ctx, db)
-	mongoDuration += time.Since(t0)
-	if err != nil {
-		http.Error(w, "failed to fetch ratings", http.StatusInternalServerError)
 		return
 	}
 
@@ -128,7 +119,7 @@ func movieSearcherSeq(w http.ResponseWriter, r *http.Request, db *mongo.Database
 	}
 }
 
-func movieSearcherCon(w http.ResponseWriter, r *http.Request, db *mongo.Database) {
+func movieSearcherCon(w http.ResponseWriter, r *http.Request, db *mongo.Database, ratings []Rating) {
 	fmt.Println("/similarMoviesCon was requested")
 
 	userId := r.URL.Query().Get("userId")
@@ -161,15 +152,6 @@ func movieSearcherCon(w http.ResponseWriter, r *http.Request, db *mongo.Database
 	mongoDuration += time.Since(t0)
 	if !exists {
 		http.Error(w, "user not found", http.StatusNotFound)
-		return
-	}
-
-	// fetch ratings (mongo)
-	t0 = time.Now()
-	ratings, err := fetchRating(ctx, db)
-	mongoDuration += time.Since(t0)
-	if err != nil {
-		http.Error(w, "failed to fetch ratings", http.StatusInternalServerError)
 		return
 	}
 

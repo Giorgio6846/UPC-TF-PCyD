@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -24,9 +25,9 @@ func main() {
 	defer func() { _ = client.Disconnect(context.Background()) }()
 
 	db := client.Database("dataset")
-	if err := appendDataToDB(db); err != nil {
-		log.Fatalf("appendDataToDB failed: %v", err)
-	}
+	//if err := appendDataToDB(db); err != nil {
+	//	log.Fatalf("appendDataToDB failed: %v", err)
+	//}
 
 	setupAPI(db)
 	if err = http.ListenAndServe(":8080", nil); err != nil {
@@ -36,10 +37,17 @@ func main() {
 }
 
 func setupAPI(db *mongo.Database) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+	ratings, err := fetchRating(ctx, db)
+	if err != nil {
+		return
+	}
+
 	http.HandleFunc("/similarMoviesSeq", func(w http.ResponseWriter, r *http.Request) {
-		movieSearcherSeq(w, r, db)
+		movieSearcherSeq(w, r, db, ratings)
 	})
 	http.HandleFunc("/similarMoviesCon", func(w http.ResponseWriter, r *http.Request) {
-		movieSearcherCon(w, r, db)
+		movieSearcherCon(w, r, db, ratings)
 	})
 }
