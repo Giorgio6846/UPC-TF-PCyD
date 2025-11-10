@@ -40,6 +40,6 @@ func setupAPI(db *mongo.Database) {
 		movieSearcherSeq(w, r, db)
 	})
 	http.HandleFunc("/similarMoviesCon", func(w http.ResponseWriter, r *http.Request) {
-		movieSearcherSeq(w, r, db)
+		movieSearcherCon(w, r, db)
 	})
 }
