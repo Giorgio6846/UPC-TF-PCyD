@@ -116,10 +116,23 @@ func worker(id int, jobs <-chan int, results chan<- Similarity, target UserVecto
 
 
 func computeSimilarUsers(targetID int, nWorkers int) {
+	rdb := connectRedis()
 	collection := connectMongo()
+	var allUsers map[int]UserVector
 
-	fmt.Println("Trayendo los usuarios con sus reviews desde mongo")
-	allUsers, _ := loadUserVectors(collection)
+	count, _ := rdb.Exists(ctx, "user:1").Result()
+	
+
+	if count > 0 {
+    	fmt.Println("cargando vectores desde Redis...")
+    	allUsers = loadFromRedis(rdb)
+	} else {
+		fmt.Println("cargando vectores desde Mongo...")
+		allUsers, _ = loadUserVectors(collection)
+
+		fmt.Println("guardando vectores de usuarios en Redis")
+		saveToRedis(rdb, allUsers)
+	}
 
 	target, ok := allUsers[targetID]
 	if !ok {
@@ -151,7 +164,7 @@ func computeSimilarUsers(targetID int, nWorkers int) {
 
 
 	calcElapsed := time.Since(calcStart)
-	fmt.Printf("tiempo de cálculo puro: %s\n\n", calcElapsed)
+	fmt.Printf("tiempo de solo calculos de similitud: %s\n\n", calcElapsed)
 
 	var sims []Similarity
 	for s := range results {
@@ -166,15 +179,19 @@ func computeSimilarUsers(targetID int, nWorkers int) {
 
 	sendToCoordinator(targetID, top)
 	
-	for _, s := range top {
-		fmt.Printf("User %d  → similarity %.4f\n", s.UserID, s.Similarity)
-	}
+	//for _, s := range top {
+		//fmt.Printf("User %d  → similarity %.4f\n", s.UserID, s.Similarity)
+	//}
 }
 
 func main() {
 	
-	targetUser := 1        
+	startAll := time.Now()
+	targetUser := 100        
 	nWorkers := 300      
 
 	computeSimilarUsers(targetUser, nWorkers)
+
+	totalElapsed := time.Since(startAll)
+	fmt.Printf("\tempo TOTAL de ejecucion: %s\n", totalElapsed)
 }

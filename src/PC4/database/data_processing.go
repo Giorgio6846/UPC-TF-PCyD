@@ -29,7 +29,7 @@ type Rating struct {
 
 const (
 	chunkSize  = 100000
-	numWorkers = 10
+	numWorkers = 50
 )
 
 
