@@ -59,7 +59,7 @@ func workerRating(id int, jobs <-chan [][]string, wg *sync.WaitGroup, collection
 	ctx := context.Background()
 
 	for records := range jobs {
-		var ratings []interface{}
+		var ratings []interface{} // lo unico que acepta mongo creo 
 		for _, record := range records {
 			userId, _ := strconv.Atoi(record[0])
 			movieId, _ := strconv.Atoi(record[1])
