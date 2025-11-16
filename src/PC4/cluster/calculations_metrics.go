@@ -1,4 +1,4 @@
-package main
+package cluster
 
 import (
 	"context"
@@ -31,19 +31,19 @@ type Similarity struct {
 
 func sendToCoordinator(targetID int, top []Similarity) error {
 	data := map[string]interface{}{
-	    "target": targetID,
-	    "neighbors": top,
-	}	
-	jsonBytes, _ := json.Marshal(data)	
+		"target":    targetID,
+		"neighbors": top,
+	}
+	jsonBytes, _ := json.Marshal(data)
 	conn, err := net.Dial("tcp", "localhost:9000")
 	if err != nil {
-	    return err
+		return err
 	}
-	defer conn.Close()	
+	defer conn.Close()
 	_, err = conn.Write(jsonBytes)
 	if err != nil {
-	    return err
-	}	
+		return err
+	}
 	fmt.Println("Resultados enviados al coordinador")
 	return nil
 }
@@ -114,18 +114,16 @@ func worker(id int, jobs <-chan int, results chan<- Similarity, target UserVecto
 	}
 }
 
-
 func computeSimilarUsers(targetID int, nWorkers int) {
 	rdb := connectRedis()
 	collection := connectMongo()
 	var allUsers map[int]UserVector
 
 	count, _ := rdb.Exists(ctx, "user:1").Result()
-	
 
 	if count > 0 {
-    	fmt.Println("cargando vectores desde Redis...")
-    	allUsers = loadFromRedis(rdb)
+		fmt.Println("cargando vectores desde Redis...")
+		allUsers = loadFromRedis(rdb)
 	} else {
 		fmt.Println("cargando vectores desde Mongo...")
 		allUsers, _ = loadUserVectors(collection)
@@ -138,7 +136,6 @@ func computeSimilarUsers(targetID int, nWorkers int) {
 	if !ok {
 		log.Fatalf("El usuario %d no existe en la DB.", targetID)
 	}
-
 
 	calcStart := time.Now()
 
@@ -162,7 +159,6 @@ func computeSimilarUsers(targetID int, nWorkers int) {
 	wg.Wait()
 	close(results)
 
-
 	calcElapsed := time.Since(calcStart)
 	fmt.Printf("tiempo de solo calculos de similitud: %s\n\n", calcElapsed)
 
@@ -178,17 +174,17 @@ func computeSimilarUsers(targetID int, nWorkers int) {
 	top := sims[:20] //top 20
 
 	sendToCoordinator(targetID, top)
-	
+
 	//for _, s := range top {
-		//fmt.Printf("User %d  → similarity %.4f\n", s.UserID, s.Similarity)
+	//fmt.Printf("User %d  → similarity %.4f\n", s.UserID, s.Similarity)
 	//}
 }
 
 func main() {
-	
+
 	startAll := time.Now()
-	targetUser := 100        
-	nWorkers := 300      
+	targetUser := 100
+	nWorkers := 300
 
 	computeSimilarUsers(targetUser, nWorkers)
 

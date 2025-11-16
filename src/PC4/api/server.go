@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,19 +25,23 @@ type Similarity struct {
 }
 
 func connectMongo() *mongo.Collection {
-    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-    uri := "mongodb://hello:world@localhost:27017"
-    client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-    if err != nil {
-        log.Fatal("Error conectando mongo API:", err)
-    }
+	uri, ok := os.LookupEnv("MONGODB_URI")
+	if !ok {
+		log.Fatal("MONGODB_URI not set")
+	}
 
-    return client.Database("movielens").Collection("recommendations")
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	if err != nil {
+		log.Fatal("Error conectando mongo API:", err)
+	}
+
+	return client.Database("movielens").Collection("recommendations")
 }
 
-func startTCPServer() {
+func StartTCPServer() {
 	ln, err := net.Listen("tcp", ":9000")
 	if err != nil {
 		panic(err)
@@ -52,25 +57,22 @@ func startTCPServer() {
 }
 
 func saveRecommendationToMongo(target int, neighbors []Similarity) error {
-    collection := connectMongo()
+	collection := connectMongo()
 
-    doc := map[string]interface{}{
-        "target":    target,
-        "neighbors": neighbors,
-        "createdAt": time.Now(),
-    }
+	doc := map[string]interface{}{
+		"target":    target,
+		"neighbors": neighbors,
+		"createdAt": time.Now(),
+	}
 
-    _, err := collection.InsertOne(context.Background(), doc)
-    return err
+	_, err := collection.InsertOne(context.Background(), doc)
+	return err
 }
-
-
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	data, _ := io.ReadAll(conn)
-
 
 	fmt.Println("datos recibidos")
 	fmt.Println(string(data))
@@ -86,9 +88,9 @@ func handleConnection(conn net.Conn) {
 	}
 
 	if err := saveRecommendationToMongo(msg.Target, msg.Neighbors); err != nil {
-        fmt.Println("❌ Error guardando en Mongo:", err)
-        return
-    }
+		fmt.Println("❌ Error guardando en Mongo:", err)
+		return
+	}
 
 	fmt.Println("Terminado")
 }

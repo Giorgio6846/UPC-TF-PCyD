@@ -1,10 +1,10 @@
 services:
   orchestrator:
     build: 
-      context: src/PC3
+      context: src/PC4
       dockerfile: Dockerfile
     environment:
-      MONGODB_URI: "mongodb://user:pass@mongo:27017/?authSource=admin"
+      MONGODB_URI: "mongodb://hello:world@localhost:27017"
       MOVIE_CSV_PATH:  "/data/csv/movies.csv"
       RATING_CSV_PATH: "/data/csv/ratings.csv"
       TAGS_CSV_PATH:   "/data/csv/tags.csv"
@@ -28,13 +28,11 @@ services:
       - ./data/mongo:/data/db/
 
   redis:
-    image: redis:6.2-alpine
+    image: redis:latest
+    container_name: redis
     restart: always
     ports:
-      - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
-    volumes: 
-      - cache:/data
+      - "6379:6379"
 
 volumes:
     cache:

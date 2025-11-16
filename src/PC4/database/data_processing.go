@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"bufio"
@@ -15,10 +15,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Movie struct{
-	MovieID int `bson:"movieId"`
-	Title string `bson:"title"`
-	Genres string `bson:"genres"`
+type Movie struct {
+	MovieID int    `bson:"movieId"`
+	Title   string `bson:"title"`
+	Genres  string `bson:"genres"`
 }
 
 type Rating struct {
@@ -31,7 +31,6 @@ const (
 	chunkSize  = 100000
 	numWorkers = 50
 )
-
 
 func connectMongo(typeConnection int) *mongo.Collection {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -48,7 +47,7 @@ func connectMongo(typeConnection int) *mongo.Collection {
 		fmt.Println("✅ Conectado a MongoDB y lista la colección 'movies'")
 		return collection
 	}
-	
+
 	collection := client.Database("movielens").Collection("ratings")
 	fmt.Println("✅ Conectado a MongoDB y lista la colección 'ratings'")
 	return collection
@@ -59,7 +58,7 @@ func workerRating(id int, jobs <-chan [][]string, wg *sync.WaitGroup, collection
 	ctx := context.Background()
 
 	for records := range jobs {
-		var ratings []interface{} // lo unico que acepta mongo creo 
+		var ratings []interface{} // lo unico que acepta mongo creo
 		for _, record := range records {
 			userId, _ := strconv.Atoi(record[0])
 			movieId, _ := strconv.Atoi(record[1])
@@ -97,7 +96,7 @@ func workerMovie(id int, jobs <-chan [][]string, wg *sync.WaitGroup, collection 
 func main() {
 	collectionMovies := connectMongo(1)
 	collectionRatings := connectMongo(2)
-	
+
 	fileRating, _ := os.Open("./data/ratings_clean.csv")
 	fileMovie, _ := os.Open("./data/movies_clean.csv")
 
@@ -141,7 +140,6 @@ func main() {
 
 	close(jobsMovie)
 
-
 	var batchRating [][]string
 	for {
 		record, err := readerRating.Read()
@@ -156,7 +154,7 @@ func main() {
 	}
 
 	if len(batchRating) > 0 {
-		jobsRating	 <- batchRating
+		jobsRating <- batchRating
 	}
 
 	close(jobsRating)
