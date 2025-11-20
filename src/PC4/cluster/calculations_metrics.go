@@ -7,13 +7,13 @@ import (
 	"log"
 	"math"
 	"net"
+	"pc4/database"
 	"sort"
 	"sync"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Rating struct {
@@ -46,19 +46,6 @@ func sendToCoordinator(targetID int, top []Similarity) error {
 	}
 	fmt.Println("Resultados enviados al coordinador")
 	return nil
-}
-
-func connectMongo() *mongo.Collection {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	uri := "mongodb://hello:world@localhost:27017"
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return client.Database("movielens").Collection("ratings")
 }
 
 func loadUserVectors(collection *mongo.Collection) (map[int]UserVector, error) {
@@ -116,7 +103,7 @@ func worker(id int, jobs <-chan int, results chan<- Similarity, target UserVecto
 
 func computeSimilarUsers(targetID int, nWorkers int) {
 	rdb := connectRedis()
-	collection := connectMongo()
+	collection := database.ConnectMongo(database.Ratings)
 	var allUsers map[int]UserVector
 
 	count, _ := rdb.Exists(ctx, "user:1").Result()

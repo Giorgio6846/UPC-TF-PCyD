@@ -5,13 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net"
-	"os"
+	"pc4/database"
 	"time"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ClusterMessage struct {
@@ -22,23 +18,6 @@ type ClusterMessage struct {
 type Similarity struct {
 	UserID     int     `json:"userId"`
 	Similarity float64 `json:"similarity"`
-}
-
-func connectMongo() *mongo.Collection {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	uri, ok := os.LookupEnv("MONGODB_URI")
-	if !ok {
-		log.Fatal("MONGODB_URI not set")
-	}
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-	if err != nil {
-		log.Fatal("Error conectando mongo API:", err)
-	}
-
-	return client.Database("movielens").Collection("recommendations")
 }
 
 func StartTCPServer() {
@@ -57,7 +36,7 @@ func StartTCPServer() {
 }
 
 func saveRecommendationToMongo(target int, neighbors []Similarity) error {
-	collection := connectMongo()
+	collection := database.ConnectMongo(database.Recommendations)
 
 	doc := map[string]interface{}{
 		"target":    target,

@@ -4,6 +4,7 @@ services:
       context: src/PC4
       dockerfile: Dockerfile
     environment:
+      WORKER_TYPE: "orchestrator"
       MONGODB_URI: "mongodb://hello:world@localhost:27017"
       MOVIE_CSV_PATH:  "/data/csv/movies.csv"
       RATING_CSV_PATH: "/data/csv/ratings.csv"
@@ -13,7 +14,13 @@ services:
       - 8080:8080
     volumes: 
       - ./data/ml-25m:/data/csv/
-
+  worker:
+    build: 
+      context: src/PC4
+      dockerfile: Dockerfile
+    environment:
+      WORKER_TYPE: "worker"
+      MONGODB_URI: "mongodb://hello:world@localhost:27017"
 
   mongo:
     image: mongo

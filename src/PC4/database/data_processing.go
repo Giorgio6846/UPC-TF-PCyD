@@ -5,14 +5,11 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"sync"
-	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Movie struct {
@@ -31,27 +28,6 @@ const (
 	chunkSize  = 100000
 	numWorkers = 50
 )
-
-func connectMongo(typeConnection int) *mongo.Collection {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	uri := "mongodb://hello:world@localhost:27017"
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if typeConnection == 1 {
-		collection := client.Database("movielens").Collection("movies")
-		fmt.Println("✅ Conectado a MongoDB y lista la colección 'movies'")
-		return collection
-	}
-
-	collection := client.Database("movielens").Collection("ratings")
-	fmt.Println("✅ Conectado a MongoDB y lista la colección 'ratings'")
-	return collection
-}
 
 func workerRating(id int, jobs <-chan [][]string, wg *sync.WaitGroup, collection *mongo.Collection) {
 	defer wg.Done()
@@ -94,8 +70,8 @@ func workerMovie(id int, jobs <-chan [][]string, wg *sync.WaitGroup, collection 
 }
 
 func main() {
-	collectionMovies := connectMongo(1)
-	collectionRatings := connectMongo(2)
+	collectionMovies := ConnectMongo(Movies)
+	collectionRatings := ConnectMongo(Ratings)
 
 	fileRating, _ := os.Open("./data/ratings_clean.csv")
 	fileMovie, _ := os.Open("./data/movies_clean.csv")

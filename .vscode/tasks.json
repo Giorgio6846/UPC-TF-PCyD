@@ -9,7 +9,13 @@
             "command": "go run ${file}"
         },
         {
-            "label": "Docker Compose Up",
+            "label": "Docker Compose Up (Single)",
+            "type": "shell",
+            "command": "docker compose -f ${workspaceFolder}/docker-compose.yml up --build --detach",
+            "problemMatcher": []
+        },
+        {
+            "label": "Docker Compose Up (Distributed)",
             "type": "shell",
             "command": "docker compose -f ${workspaceFolder}/docker-compose.yml up --build --detach",
             "problemMatcher": []
