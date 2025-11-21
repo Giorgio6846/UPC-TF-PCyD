@@ -1,10 +1,13 @@
 services:
   orchestrator:
+    container_name: orchestrator
     build: 
       context: src/PC4
       dockerfile: Dockerfile
     environment:
       WORKER_TYPE: "orchestrator"
+      WORKER_PORT: "8040"
+      CLIENT_PORT: "8080"
       MONGODB_URI: "mongodb://hello:world@localhost:27017"
       MOVIE_CSV_PATH:  "/data/csv/movies.csv"
       RATING_CSV_PATH: "/data/csv/ratings.csv"
@@ -12,6 +15,7 @@ services:
       LINKS_CSV_PATH:   "/data/csv/links.csv"
     ports:
       - 8080:8080
+      - 8040:8040
     volumes: 
       - ./data/ml-25m:/data/csv/
   worker:
@@ -21,8 +25,9 @@ services:
     environment:
       WORKER_TYPE: "worker"
       MONGODB_URI: "mongodb://hello:world@localhost:27017"
-
+      ORCHESTRATOR_IP: "orchestrator:8040"
   mongo:
+    container_name: mongo
     image: mongo
     restart: always
     environment:
@@ -35,8 +40,8 @@ services:
       - ./data/mongo:/data/db/
 
   redis:
-    image: redis:latest
     container_name: redis
+    image: redis:latest
     restart: always
     ports:
       - "6379:6379"

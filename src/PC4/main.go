@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"pc4/api"
+	"pc4/orchestrator"
+	"pc4/worker"
+	"time"
 )
 
 func main() {
@@ -13,12 +14,11 @@ func main() {
 		log.Fatal("WORKER_TYPE not set")
 	}
 
-	if workerType == "orchestrator" {
-		go api.StartTCPServer()
-		select {}
-	} else if workerType == "worker" {
-		test := 1 + 1
-		fmt.Println(test)
+	switch workerType {
+	case "orchestrator":
+		orchestrator.StartOrchestrator()
+	case "worker":
+		time.Sleep(time.Second * 5)
+		worker.StartWorker()
 	}
-
 }

@@ -17,7 +17,7 @@
         {
             "label": "Docker Compose Up (Distributed)",
             "type": "shell",
-            "command": "docker compose -f ${workspaceFolder}/docker-compose.yml up --build --detach",
+            "command": "docker compose -f ${workspaceFolder}/docker-compose.yml up --scale worker=10 --build --detach",
             "problemMatcher": []
         },
         {
