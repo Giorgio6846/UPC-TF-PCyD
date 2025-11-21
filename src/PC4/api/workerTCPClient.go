@@ -1,4 +1,4 @@
-package worker
+package api
 
 import (
 	"log"
@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type Job struct {
+type JobWorker struct {
 	Type string `json:"type"`
 	ID   string `json:"id"`
 	Data string `json:"data"`

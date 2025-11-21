@@ -7,8 +7,9 @@ services:
     environment:
       WORKER_TYPE: "orchestrator"
       WORKER_PORT: "8040"
-      CLIENT_PORT: "8080"
+      API_PORT: "8080"
       MONGODB_URI: "mongodb://hello:world@localhost:27017"
+      REDIS_URL: "redis:6379"
       MOVIE_CSV_PATH:  "/data/csv/movies.csv"
       RATING_CSV_PATH: "/data/csv/ratings.csv"
       TAGS_CSV_PATH:   "/data/csv/tags.csv"

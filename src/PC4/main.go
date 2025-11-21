@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 	"os"
-	"pc4/orchestrator"
-	"pc4/worker"
+	"pc4/api"
+	"pc4/database"
+	"sync"
 	"time"
 )
 
@@ -16,9 +17,25 @@ func main() {
 
 	switch workerType {
 	case "orchestrator":
-		orchestrator.StartOrchestrator()
+		database.AppendDataToDB()
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+
+		go func() {
+			defer wg.Done()
+			api.ServerWorkers()
+		}()
+
+		go func() {
+			defer wg.Done()
+			api.SetupAPI()
+		}()
+
+		wg.Wait()
+
 	case "worker":
 		time.Sleep(time.Second * 5)
-		worker.StartWorker()
+		api.StartWorker()
 	}
 }

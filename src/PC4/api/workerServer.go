@@ -1,4 +1,4 @@
-package orchestrator
+package api
 
 import (
 	"log"
@@ -55,7 +55,7 @@ func (r *WorkerRegistry) List() []string {
 	return out
 }
 
-func ServerWorker() {
+func ServerWorkers() {
 	WP, ok := os.LookupEnv("WORKER_PORT")
 	if !ok {
 		log.Fatal("WORKER_PORT not set")
