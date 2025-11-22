@@ -22,8 +22,6 @@ type Rating struct {
 	Rating  float64 `bson:"rating"`
 }
 
-type UserVector map[int]float64
-
 type Similarity struct {
 	UserID     int
 	Similarity float64
@@ -48,7 +46,7 @@ func sendToCoordinator(targetID int, top []Similarity) error {
 	return nil
 }
 
-func loadUserVectors(collection *mongo.Collection) (map[int]UserVector, error) {
+func loadUserVectors(collection *mongo.Collection) (map[int]database.UserVector, error) {
 	ctx := context.Background()
 	cur, err := collection.Find(ctx, bson.M{}) //aca devuelve todo los docs
 	if err != nil {
@@ -56,13 +54,13 @@ func loadUserVectors(collection *mongo.Collection) (map[int]UserVector, error) {
 	}
 	defer cur.Close(ctx)
 
-	userVectors := make(map[int]UserVector)
+	userVectors := make(map[int]database.UserVector)
 
 	for cur.Next(ctx) {
 		var r Rating
 		cur.Decode(&r)
 		if _, ok := userVectors[r.UserID]; !ok {
-			userVectors[r.UserID] = make(UserVector) //Se inicializa el uservector paRa luego poblarlo
+			userVectors[r.UserID] = make(database.UserVector) //Se inicializa el uservector paRa luego poblarlo
 		}
 
 		userVectors[r.UserID][r.MovieID] = r.Rating
@@ -71,7 +69,7 @@ func loadUserVectors(collection *mongo.Collection) (map[int]UserVector, error) {
 	return userVectors, nil
 }
 
-func cosineSimilarity(a, b UserVector) float64 {
+func cosineSimilarity(a, b database.UserVector) float64 {
 	var dot, magA, magB float64
 
 	for movie, rA := range a {
@@ -91,7 +89,7 @@ func cosineSimilarity(a, b UserVector) float64 {
 	return dot / (math.Sqrt(magA) * math.Sqrt(magB))
 }
 
-func worker(id int, jobs <-chan int, results chan<- Similarity, target UserVector, allUsers map[int]UserVector, wg *sync.WaitGroup) {
+func worker(id int, jobs <-chan int, results chan<- Similarity, target database.UserVector, allUsers map[int]database.UserVector, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for userID := range jobs {
@@ -102,21 +100,23 @@ func worker(id int, jobs <-chan int, results chan<- Similarity, target UserVecto
 }
 
 func computeSimilarUsers(targetID int, nWorkers int) {
-	rdb := connectRedis()
-	collection := database.ConnectMongo(database.Ratings)
-	var allUsers map[int]UserVector
+	rdb := database.GetRedisDB()
+	db := database.GetDB()
 
-	count, _ := rdb.Exists(ctx, "user:1").Result()
+	collection := db.Collection("ratings")
+	var allUsers map[int]database.UserVector
+
+	count, _ := rdb.Exists(context.Background(), "user:1").Result()
 
 	if count > 0 {
 		fmt.Println("cargando vectores desde Redis...")
-		allUsers = loadFromRedis(rdb)
+		allUsers = database.LoadFromRedis(rdb)
 	} else {
 		fmt.Println("cargando vectores desde Mongo...")
 		allUsers, _ = loadUserVectors(collection)
 
 		fmt.Println("guardando vectores de usuarios en Redis")
-		saveToRedis(rdb, allUsers)
+		database.SaveToRedis(rdb, allUsers)
 	}
 
 	target, ok := allUsers[targetID]

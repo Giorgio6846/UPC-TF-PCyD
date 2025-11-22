@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"pc4/api"
@@ -17,7 +18,22 @@ func main() {
 
 	switch workerType {
 	case "orchestrator":
-		database.AppendDataToDB()
+		if err := database.InitMongo(); err != nil {
+			log.Fatal(err)
+		}
+		defer database.CloseMongo(context.Background())
+
+		fillDBCond, ok := os.LookupEnv("FILL_DB")
+		if !ok {
+			log.Fatal("FILL_DB not set")
+		}
+		if fillDBCond == "True" {
+			database.AppendDataToDB()
+		}
+
+		if err := database.InitRedis(); err != nil {
+			log.Fatal(err)
+		}
 
 		var wg sync.WaitGroup
 		wg.Add(2)
