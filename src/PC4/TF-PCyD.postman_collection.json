@@ -1,0 +1,23 @@
+{
+	"info": {
+		"_postman_id": "45c72253-9a30-43ed-8012-11d078645854",
+		"name": "TF-PCyD",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38748188"
+	},
+	"item": [
+		{
+			"name": "UserManagment",
+			"item": [
+				{
+					"name": "LoginUser",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
