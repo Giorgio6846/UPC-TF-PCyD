@@ -1,5 +1,7 @@
 services:
   orchestrator:
+    env_file:
+      - ./PROD.env
     container_name: orchestrator
     build: 
       context: src/PC4
@@ -8,15 +10,17 @@ services:
       WORKER_TYPE: "orchestrator"
       WORKER_PORT: "8040"
       API_PORT: "8080"
-      MONGODB_URI: "mongodb://hello:world@localhost:27017"
-      REDIS_URL: "redis:6379"
+      MONGODB_URI: "mongodb://user:pass@mongo:27017"
+      REDIS_ADDR: "redis:6379"
       MOVIE_CSV_PATH:  "/data/csv/movies.csv"
       RATING_CSV_PATH: "/data/csv/ratings.csv"
       TAGS_CSV_PATH:   "/data/csv/tags.csv"
       LINKS_CSV_PATH:   "/data/csv/links.csv"
+      FILL_DB:   "False"
+      JWT_SECRET: "ed8ce1ddee2d90ecff7c9f7972296399d922a7749a121aba6286388c677c1ecb"
     ports:
-      - 8080:8080
       - 8040:8040
+      - 8080:8080
     volumes: 
       - ./data/ml-25m:/data/csv/
   worker:
@@ -25,7 +29,6 @@ services:
       dockerfile: Dockerfile
     environment:
       WORKER_TYPE: "worker"
-      MONGODB_URI: "mongodb://hello:world@localhost:27017"
       ORCHESTRATOR_IP: "orchestrator:8040"
   mongo:
     container_name: mongo
