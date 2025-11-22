@@ -1,2 +1,4 @@
 data
 mongo_data
+
+__debug_*

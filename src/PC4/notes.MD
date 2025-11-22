@@ -20,3 +20,14 @@ Job {
     "Job": "(Type of job):integer",
     "Inf": "Information of the job",
 }
+
+API
+/login
+/register
+
+/me
+/userPanel
+/metricsPanel
+
+/topMovies
+/userSimilarity
