@@ -88,7 +88,7 @@ func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 		database.SaveToRedis(rdb, userVec)
 	}
 
-	neighbors, err := ds.ComputeSimilarUsers(userID, 10, userVec)
+	neighbors, err := ds.ComputeSimilarUsers(userID, 30, userVec)
 	if err != nil {
 		log.Fatal("couldn't connect to mongo", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

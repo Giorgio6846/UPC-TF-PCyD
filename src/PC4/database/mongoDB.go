@@ -346,7 +346,7 @@ func FetchRating(ctx context.Context, db *mongo.Database) ([]tools.Rating, error
 			{Key: "movieId", Value: 1},
 			{Key: "rating", Value: 1},
 		}).
-		SetBatchSize(5000)
+		SetBatchSize(20000)
 
 	cur, err := coll.Find(ctx, bson.D{}, opts)
 	if err != nil {
@@ -354,16 +354,55 @@ func FetchRating(ctx context.Context, db *mongo.Database) ([]tools.Rating, error
 	}
 	defer cur.Close(ctx)
 
-	out := make([]tools.Rating, 0, 1_000_000)
+	ch := make(chan tools.Rating, 5000)
 
-	for cur.Next(ctx) {
-		var r tools.Rating
-		if err := cur.Decode(&r); err != nil {
-			return nil, err
+	errCh := make(chan error, 1)
+
+	go func() {
+		defer close(ch)
+		for cur.Next(ctx) {
+			var r tools.Rating
+			if err := cur.Decode(&r); err != nil {
+				errCh <- err
+				return
+			}
+			ch <- r
 		}
+		if err := cur.Err(); err != nil {
+			errCh <- err
+		}
+	}()
+
+	workers := 5
+
+	outCh := make(chan tools.Rating, 5000)
+	var wg sync.WaitGroup
+	wg.Add(workers)
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			for r := range ch {
+				outCh <- r
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(outCh)
+	}()
+
+	out := make([]tools.Rating, 0, 1_000_000)
+	for r := range outCh {
 		out = append(out, r)
 	}
-	return out, cur.Err()
+
+	select {
+	case e := <-errCh:
+		return nil, e
+	default:
+		return out, nil
+	}
 }
 
 // fetchMoviesMap returns a map from movieID -> Movie for the provided IDs.

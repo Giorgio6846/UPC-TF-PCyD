@@ -114,7 +114,7 @@ func ensureCollection(ctx context.Context, db *mongo.Database, name string, vali
 	return nil
 }
 
-func appendDataToDB(db *mongo.Database) error {
+func AppendDataToDB(db *mongo.Database) error {
 	fmt.Println("Filling DB uwu")
 
 	path, ok := os.LookupEnv("MOVIE_CSV_PATH")

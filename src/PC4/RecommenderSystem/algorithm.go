@@ -17,6 +17,9 @@ func CosineSimilarity(target tools.UserVector, userVectors map[int]tools.UserVec
 		go worker(i, jobs, results, target, userVectors, &wg)
 	}
 
+	for userID := range userVectors {
+		jobs <- userID
+	}
 	close(jobs)
 	wg.Wait()
 	close(results)

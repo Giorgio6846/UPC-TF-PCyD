@@ -54,7 +54,7 @@ func waitWork(conn net.Conn) error {
 			log.Printf("decode error: %v", err)
 			continue
 		}
-		log.Printf("received job: %+v", job)
+		//log.Printf("received job: %+v", job)
 		go doWork(conn, job)
 	}
 }
