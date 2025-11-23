@@ -75,7 +75,12 @@ func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 
 	if count > 0 {
 		fmt.Println("cargando vectores desde Redis...")
-		userVec = database.LoadFromRedis(rdb)
+		userVec, err = database.LoadFromRedis(context.Background(), rdb)
+		if err != nil {
+			log.Fatal("error from redis", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
 	} else {
 		fmt.Println("cargando vectores desde Mongo...")
 
