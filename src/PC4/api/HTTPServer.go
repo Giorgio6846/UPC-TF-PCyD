@@ -14,6 +14,7 @@ import (
 	"pc4/tools"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ctxKey string
@@ -63,6 +64,8 @@ func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	t0 := time.Now()
+
 	db := database.GetDB()
 	rdb := database.GetRedisDB()
 
@@ -88,12 +91,18 @@ func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 		database.SaveToRedis(rdb, userVec)
 	}
 
+	durationDB := time.Since(t0)
+	t0 = time.Now()
+
 	neighbors, err := ds.ComputeSimilarUsers(userID, 30, userVec)
 	if err != nil {
 		log.Fatal("couldn't connect to mongo", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	durationAlgo := time.Since(t0)
+	t0 = time.Now()
 
 	recommendedMovies := recommendersystem.RecommendFromTopK(userID, neighbors, userVec, 20, 0.05, 2)
 	ids := make([]int, 0, len(recommendedMovies))
@@ -108,6 +117,8 @@ func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	durationFetch := time.Since(t0)
 
 	results := make([]tools.JsonMovieResult, len(recommendedMovies))
 	for i, n := range recommendedMovies {
@@ -134,7 +145,10 @@ func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := tools.ResponseMovieJSON{
-		Results: results,
+		Results:            results,
+		DurationDB:         float32(durationDB.Milliseconds()),
+		DurationAlgo:       float32(durationAlgo.Milliseconds()),
+		DurationMovieFetch: float32(durationFetch.Milliseconds()),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -208,8 +222,8 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	if exists {
-		http.Error(w, "user already created", http.StatusNotFound)
+	if !exists {
+		http.Error(w, "user not created", http.StatusNotFound)
 		return
 	}
 

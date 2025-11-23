@@ -11,7 +11,8 @@ type JsonMovieResult struct {
 }
 
 type ResponseMovieJSON struct {
-	Results     []JsonMovieResult `json:"results"`
-	TimeMongoMs int64             `json:"timeMongoMs"`
-	TimeAlgoMs  int64             `json:"timeAlgoMs"`
+	Results            []JsonMovieResult `json:"results"`
+	DurationDB         float32           `json:"durationDB"`
+	DurationAlgo       float32           `json:"durationAlgo"`
+	DurationMovieFetch float32           `json:"durationMovieFetch"`
 }
