@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"pc4/tools"
 
 	"github.com/redis/go-redis/v9"
 )
-
-type UserVector map[int]float64
 
 var ctx = context.Background()
 var redisDB *redis.Client
@@ -34,7 +33,7 @@ func GetRedisDB() *redis.Client {
 	return redisDB
 }
 
-func SaveToRedis(rdb *redis.Client, allUsers map[int]UserVector) {
+func SaveToRedis(rdb *redis.Client, allUsers map[int]tools.UserVector) {
 	for userID, vec := range allUsers {
 		jsonBytes, _ := json.Marshal(vec)
 		key := fmt.Sprintf("user:%d", userID)
@@ -42,15 +41,15 @@ func SaveToRedis(rdb *redis.Client, allUsers map[int]UserVector) {
 	}
 }
 
-func LoadFromRedis(rdb *redis.Client) map[int]UserVector {
-	result := make(map[int]UserVector)
+func LoadFromRedis(rdb *redis.Client) map[int]tools.UserVector {
+	result := make(map[int]tools.UserVector)
 
 	keys, _ := rdb.Keys(ctx, "user:*").Result()
 
 	for _, key := range keys {
 		data, _ := rdb.Get(ctx, key).Result()
 
-		var vec UserVector
+		var vec tools.UserVector
 		json.Unmarshal([]byte(data), &vec)
 
 		var uid int

@@ -42,6 +42,19 @@ type LinksParsed struct {
 }
 
 type UserInfo struct {
-	Email   string
-	Pasword string
+	Email    string
+	Password string
+}
+
+type UserVector map[int]float64
+
+type SimilarityVector struct {
+	TargetVector UserVector
+	UsersVector  map[int]UserVector
+}
+
+type Recommended struct {
+	MovieID int
+	Score   float64
+	Count   int
 }

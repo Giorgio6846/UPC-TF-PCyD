@@ -336,7 +336,7 @@ func insertManyBatched(ctx context.Context, coll *mongo.Collection, docs []inter
 	return nil
 }
 
-func fetchRating(ctx context.Context, db *mongo.Database) ([]tools.Rating, error) {
+func FetchRating(ctx context.Context, db *mongo.Database) ([]tools.Rating, error) {
 	coll := db.Collection("ratings")
 
 	opts := options.Find().
@@ -368,7 +368,7 @@ func fetchRating(ctx context.Context, db *mongo.Database) ([]tools.Rating, error
 
 // fetchMoviesMap returns a map from movieID -> Movie for the provided IDs.
 // Performs a single query using $in to fetch all matching movie documents.
-func fetchMoviesMap(ctx context.Context, db *mongo.Database, ids []int) (map[int]tools.Movie, error) {
+func FetchMoviesMap(ctx context.Context, db *mongo.Database, ids []int) (map[int]tools.Movie, error) {
 	if len(ids) == 0 {
 		return map[int]tools.Movie{}, nil
 	}
@@ -411,7 +411,7 @@ func fetchMoviesMap(ctx context.Context, db *mongo.Database, ids []int) (map[int
 func UserExists(userID int) (bool, error) {
 	db := GetDB()
 
-	n, err := db.Collection("users").CountDocuments(context.Background(), bson.D{{Key: "userId", Value: userID}})
+	n, err := db.Collection("users").CountDocuments(context.Background(), bson.D{{Key: "_id", Value: userID}})
 	if err != nil {
 		return false, err
 	}
@@ -576,13 +576,8 @@ func FindUserByEmail(ctx context.Context, email string) (*tools.UserInfo, error)
 
 	filter := bson.D{{Key: "email", Value: email}}
 	opts := options.FindOne().SetProjection(bson.D{
-		{Key: "_id", Value: 0},
 		{Key: "email", Value: 1},
 		{Key: "password", Value: 1},
-		{Key: "name", Value: 0},
-		{Key: "lastName", Value: 0},
-		{Key: "ratingIds", Value: 0},
-		{Key: "tagIds", Value: 0},
 	})
 
 	var u tools.UserInfo

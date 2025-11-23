@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	ds "pc4/DistributedSystem"
+	recommendersystem "pc4/RecommenderSystem"
 	"pc4/auth"
 	"pc4/database"
 	"pc4/tools"
@@ -27,22 +29,21 @@ func SetupAPI() {
 	mux := http.NewServeMux()
 
 	//Auth API
-	mux.HandleFunc("/register", registerUser)
-	mux.HandleFunc("/login", loginUser)
+	mux.HandleFunc("/auth/register", registerUser)
+	mux.HandleFunc("/auth/login", loginUser)
 
 	//Recommender API
-	mux.Handle("/similarMovies", RequireJWT(http.HandlerFunc(similarMoviesSearch)))
+	mux.Handle("/api/similarMovies", RequireJWT(http.HandlerFunc(similarMoviesSearch)))
 
 	log.Println("HTTP listening at :" + AP)
 
-	if err := http.ListenAndServe(":"+AP, nil); err != nil {
+	if err := http.ListenAndServe(":"+AP, mux); err != nil {
 		fmt.Println("Couldn't setup the server", err)
 	}
 }
 
 func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 	userId := r.URL.Query().Get("userId")
-	fmt.Println("userId:", userId)
 
 	userID, err := strconv.Atoi(userId)
 	if err != nil {
@@ -50,9 +51,96 @@ func similarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, _ := database.UserExists(userID)
+	fmt.Println("userId:", userID)
+
+	exists, err := database.UserExists(userID)
+	if err != nil {
+		http.Error(w, "database error", http.StatusInternalServerError)
+		return
+	}
 	if !exists {
 		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	}
+
+	db := database.GetDB()
+	rdb := database.GetRedisDB()
+
+	var userVec map[int]tools.UserVector
+	key := fmt.Sprintf("user:%d", userID)
+	count, _ := rdb.Exists(context.Background(), key).Result()
+
+	if count > 0 {
+		fmt.Println("cargando vectores desde Redis...")
+		userVec = database.LoadFromRedis(rdb)
+	} else {
+		fmt.Println("cargando vectores desde Mongo...")
+
+		ratings, err := database.FetchRating(context.Background(), db)
+		if err != nil {
+			log.Fatal("couldn't connect to mongo", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+		userVec = recommendersystem.BuildUserVectors(ratings)
+
+		fmt.Println("guardando vectores de usuarios en Redis")
+		database.SaveToRedis(rdb, userVec)
+	}
+
+	neighbors, err := ds.ComputeSimilarUsers(userID, 10, userVec)
+	if err != nil {
+		log.Fatal("couldn't connect to mongo", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	recommendedMovies := recommendersystem.RecommendFromTopK(userID, neighbors, userVec, 20, 0.05, 2)
+	ids := make([]int, 0, len(recommendedMovies))
+	for _, r := range recommendedMovies {
+		fmt.Println(r.MovieID)
+		ids = append(ids, r.MovieID)
+	}
+
+	moviesMap, err := database.FetchMoviesMap(context.Background(), db, ids)
+	if err != nil {
+		log.Fatal("couldn't connect to mongo", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	results := make([]tools.JsonMovieResult, len(recommendedMovies))
+	for i, n := range recommendedMovies {
+		m, ok := moviesMap[n.MovieID]
+		var title string
+		var genres []string
+		var imdb int32
+		var tmdb int32
+		if ok {
+			title = m.Title
+			genres = m.Genres
+			imdb = m.IMDB
+			tmdb = m.TMDB
+		}
+		results[i] = tools.JsonMovieResult{
+			Rank:    i + 1,
+			MovieID: n.MovieID,
+			Title:   title,
+			Genres:  genres,
+			IMDB:    imdb,
+			TMDB:    tmdb,
+			Score:   n.Score,
+		}
+	}
+
+	resp := tools.ResponseMovieJSON{
+		Results: results,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		fmt.Println("failed encoding response:", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -71,11 +159,11 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := database.FindUserByEmail(r.Context(), req.Email)
 	if err != nil {
-		http.Error(w, "invalid credentials", http.StatusUnauthorized)
+		http.Error(w, "user wasn't found", http.StatusUnauthorized)
 		return
 	}
 
-	if err := auth.CheckPassword(user.Pasword, req.Password); err != nil {
+	if err := auth.CheckPassword(user.Password, req.Password); err != nil {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return
 	}
@@ -107,9 +195,6 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Registering userId=%d email=%s\n", req.UserID, req.Email)
 
-	w.WriteHeader(http.StatusCreated)
-	fmt.Println(w, "user %s registered", req.Email)
-
 	hashedPw, err := auth.HashPassword(req.Password)
 	if err != nil {
 		http.Error(w, "invalid password", http.StatusBadRequest)
@@ -123,8 +208,8 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
 	}
-	if !exists {
-		http.Error(w, "user not found", http.StatusNotFound)
+	if exists {
+		http.Error(w, "user already created", http.StatusNotFound)
 		return
 	}
 

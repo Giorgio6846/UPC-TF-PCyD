@@ -1,7 +1,5 @@
 services:
   orchestrator:
-    env_file:
-      - ./PROD.env
     container_name: orchestrator
     build: 
       context: src/PC4
@@ -19,6 +17,7 @@ services:
       FILL_DB:   "False"
       JWT_SECRET: "ed8ce1ddee2d90ecff7c9f7972296399d922a7749a121aba6286388c677c1ecb"
     ports:
+      - 2345:2345
       - 8040:8040
       - 8080:8080
     volumes: 
@@ -29,7 +28,8 @@ services:
       dockerfile: Dockerfile
     environment:
       WORKER_TYPE: "worker"
-      ORCHESTRATOR_IP: "orchestrator:8040"
+      #ORCHESTRATOR_IP: "orchestrator:8040"
+      ORCHESTRATOR_IP: "10.0.0.13:8040"
   mongo:
     container_name: mongo
     image: mongo

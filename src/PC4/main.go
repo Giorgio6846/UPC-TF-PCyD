@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	ds "pc4/DistributedSystem"
 	"pc4/api"
 	"pc4/database"
 	"sync"
@@ -40,7 +41,7 @@ func main() {
 
 		go func() {
 			defer wg.Done()
-			api.ServerWorkers()
+			ds.ServerWorkers()
 		}()
 
 		go func() {
@@ -52,6 +53,6 @@ func main() {
 
 	case "worker":
 		time.Sleep(time.Second * 5)
-		api.StartWorker()
+		ds.StartWorker()
 	}
 }
