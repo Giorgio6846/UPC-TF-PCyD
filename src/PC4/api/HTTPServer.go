@@ -29,16 +29,19 @@ func SetupAPI() {
 
 	mux := http.NewServeMux()
 
-	//Auth API
+	// Auth API
 	mux.HandleFunc("/auth/register", registerUser)
 	mux.HandleFunc("/auth/login", loginUser)
 
-	//Recommender API
+	// Recommender API
 	mux.Handle("/api/similarMovies", RequireJWT(http.HandlerFunc(similarMoviesSearch)))
 
 	log.Println("HTTP listening at :" + AP)
 
-	if err := http.ListenAndServe(":"+AP, mux); err != nil {
+	// envolvemos el mux con el middleware CORS
+	handler := corsMiddleware(mux)
+
+	if err := http.ListenAndServe(":"+AP, handler); err != nil {
 		fmt.Println("Couldn't setup the server", err)
 	}
 }
@@ -264,5 +267,21 @@ func RequireJWT(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), EmailIDKey, claims.Email)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			// preflight de CORS
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }

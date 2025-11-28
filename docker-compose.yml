@@ -28,8 +28,8 @@ services:
       dockerfile: Dockerfile
     environment:
       WORKER_TYPE: "worker"
-      #ORCHESTRATOR_IP: "orchestrator:8040"
-      ORCHESTRATOR_IP: "10.0.0.13:8040"
+      ORCHESTRATOR_IP: "orchestrator:8040"
+      #ORCHESTRATOR_IP: "10.0.0.13:8040"
   mongo:
     container_name: mongo
     image: mongo
