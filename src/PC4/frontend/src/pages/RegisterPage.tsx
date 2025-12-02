@@ -38,10 +38,10 @@ const RegisterPage: React.FC = () => {
       const res = await registerApi(payload);
       setSuccess(res.message ?? "Usuario creado. Iniciando sesion...");
       if (res.token) {
-        login(email, res.token);
+        login(email, res.token, `${name} ${lastName}`);
       } else {
         const loginRes = await loginApi(email, password);
-        login(email, loginRes.token);
+        login(email, loginRes.token, `${name} ${lastName}`);
       }
       navigate("/user");
     } catch (err: any) {
@@ -57,20 +57,13 @@ const RegisterPage: React.FC = () => {
         <div className="hero-card">
           <p className="pill">Crea tu cuenta</p>
           <h1>Configura tu usuario y prueba el motor de recomendaciones.</h1>
-          <p className="muted">
-            Usa los campos con los valores de prueba o tus propios datos para crear un usuario en el backend y acceder al panel.
-          </p>
-          <div className="hero-badges">
-            <span className="badge">Registro rapido</span>
-            <span className="badge">Login automatico</span>
-            <span className="badge">Token seguro</span>
-          </div>
+          <p className="muted"></p>
+          <div className="hero-badges" />
           <div className="hero-bg" aria-hidden />
         </div>
 
         <div className="panel form-panel">
           <div className="panel-head">
-            <p className="pill soft">Nuevo usuario</p>
             <h2>Registrate</h2>
             <p className="muted">Completa los datos para crear tu cuenta.</p>
           </div>

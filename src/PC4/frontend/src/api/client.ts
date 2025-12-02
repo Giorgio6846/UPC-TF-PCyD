@@ -1,6 +1,7 @@
 ﻿const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const TMDB_KEY = import.meta.env.VITE_TMDB_KEY;
 const TMDB_BASE = "https://api.themoviedb.org/3";
+const TMDB_IMG_BASE = "https://image.tmdb.org/t/p";
 
 export interface JsonMovieResult {
   rank: number;
@@ -17,6 +18,11 @@ export interface ResponseMovieJSON {
   durationDB: number;
   durationAlgo: number;
   durationMovieFetch: number;
+}
+
+export interface MovieImages {
+  posterUrl: string | null;
+  backdropUrl: string | null;
 }
 
 export interface LoginResponse {
@@ -91,17 +97,24 @@ export async function fetchRecommendedMovies(
   return res.json();
 }
 
-export async function fetchTmdbPoster(tmdbId?: number): Promise<string | null> {
-  if (!tmdbId || !TMDB_KEY) return null;
-  const url = `${TMDB_BASE}/movie/${tmdbId}?api_key=${TMDB_KEY}&language=en-US`;
+const buildImageUrl = (path: string | undefined, size: string) =>
+  path ? `${TMDB_IMG_BASE}/${size}${path}` : null;
+
+export async function fetchTmdbImages(tmdbId?: number): Promise<MovieImages> {
+  if (!tmdbId || !TMDB_KEY) return { posterUrl: null, backdropUrl: null };
+  const url = `${TMDB_BASE}/movie/${tmdbId}/images?api_key=${TMDB_KEY}&include_image_language=en,null,es`;
   try {
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return { posterUrl: null, backdropUrl: null };
     const data = await res.json();
-    if (!data.poster_path) return null;
-    return `https://image.tmdb.org/t/p/w342${data.poster_path}`;
+    const posterPath = data?.posters?.[0]?.file_path;
+    const backdropPath = data?.backdrops?.[0]?.file_path;
+    return {
+      posterUrl: buildImageUrl(posterPath, "w500"),
+      backdropUrl: buildImageUrl(backdropPath, "w780")
+    };
   } catch (err) {
-    console.error("TMDB poster fetch failed", err);
-    return null;
+    console.error("TMDB images fetch failed", err);
+    return { posterUrl: null, backdropUrl: null };
   }
 }

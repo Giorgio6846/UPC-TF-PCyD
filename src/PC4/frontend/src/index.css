@@ -1,13 +1,13 @@
 ﻿@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 :root {
-  --bg: #030712;
-  --panel: rgba(13, 17, 28, 0.94);
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --text: #e5e7eb;
-  --muted: #9ca3af;
-  --primary: #22d3ee;
-  --accent: #f97316;
+  --bg: #060910;
+  --panel: rgba(16, 20, 32, 0.95);
+  --panel-border: rgba(255, 255, 255, 0.06);
+  --text: #e7ecf5;
+  --muted: #9da8be;
+  --primary: #7dd3fc;
+  --accent: #fbbf24;
 }
 
 * {
@@ -18,9 +18,9 @@
 
 body {
   font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
-  background: radial-gradient(1200px at 15% 0%, rgba(34, 211, 238, 0.08), transparent 40%),
-    radial-gradient(1400px at 80% 0%, rgba(249, 115, 22, 0.06), transparent 45%),
-    var(--bg);
+  background: radial-gradient(1200px at 15% 0%, rgba(125, 211, 252, 0.12), transparent 40%),
+    radial-gradient(1400px at 80% 0%, rgba(251, 191, 36, 0.08), transparent 45%),
+    linear-gradient(145deg, #05070d 0%, #0e1524 45%, #0a101c 100%);
   color: var(--text);
   min-height: 100vh;
   line-height: 1.6;

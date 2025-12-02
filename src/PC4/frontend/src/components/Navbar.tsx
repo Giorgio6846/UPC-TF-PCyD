@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar: React.FC = () => {
-  const { email, logout, token } = useAuth();
+  const { email, displayName, logout, token } = useAuth();
 
   return (
     <header className="topbar">
@@ -11,18 +11,11 @@ const Navbar: React.FC = () => {
         <span className="brand-mark">MR</span>
         <div className="brand-copy">
           <strong>MovieRec</strong>
-          <small>Recomendaciones al vuelo</small>
         </div>
       </Link>
 
-      <nav className="topbar-links">
-        <Link to="/user">Recomendaciones</Link>
-        <Link to="/login">Login</Link>
-        <Link to="/register">Registro</Link>
-      </nav>
-
       <div className="topbar-actions">
-        {email && <span className="chip">{email}</span>}
+        {(displayName || email) && <span className="chip">{displayName ?? email}</span>}
         {token ? (
           <button className="ghost-button" onClick={logout}>
             Cerrar sesion

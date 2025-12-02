@@ -1,17 +1,18 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { fetchRecommendedMovies, fetchTmdbPoster } from "../api/client";
+import { fetchRecommendedMovies, fetchTmdbImages } from "../api/client";
 import type { JsonMovieResult, ResponseMovieJSON } from "../api/client";
 
-interface MovieWithPoster extends JsonMovieResult {
+interface MovieWithImages extends JsonMovieResult {
   posterUrl?: string | null;
+  backdropUrl?: string | null;
 }
 
 const UserDashboard: React.FC = () => {
-  const { token, email } = useAuth();
+  const { token, email, displayName } = useAuth();
   const [userId, setUserId] = useState("1");
   const [data, setData] = useState<ResponseMovieJSON | null>(null);
-  const [movies, setMovies] = useState<MovieWithPoster[]>([]);
+  const [movies, setMovies] = useState<MovieWithImages[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -46,8 +47,8 @@ const UserDashboard: React.FC = () => {
       if (!data?.results?.length) return;
       const entries = await Promise.all(
         data.results.map(async movie => {
-          const posterUrl = await fetchTmdbPoster(movie.tmdb);
-          return { ...movie, posterUrl } as MovieWithPoster;
+          const { posterUrl, backdropUrl } = await fetchTmdbImages(movie.tmdb);
+          return { ...movie, posterUrl, backdropUrl } as MovieWithImages;
         })
       );
       setMovies(entries);
@@ -62,10 +63,9 @@ const UserDashboard: React.FC = () => {
       <div className="page-header">
         <div>
           <p className="pill">Panel de recomendaciones</p>
-          <h1>Hola {email ?? "explorador"}</h1>
+          <h1>Hola {displayName || email || "explorador"}</h1>
           <p className="muted">Ingresa un userId de MovieLens para ver el top de peliculas personalizadas.</p>
         </div>
-        <div className={token ? "status-chip ok" : "status-chip"}>{token ? "Token activo" : "Sin token"}</div>
       </div>
 
       <div className="panel form-panel">
@@ -94,17 +94,14 @@ const UserDashboard: React.FC = () => {
             <div className="stat-card">
               <p className="muted">Consulta DB</p>
               <strong>{data.durationDB} ms</strong>
-              <span className="pill tiny">SQL</span>
             </div>
             <div className="stat-card">
               <p className="muted">Algoritmo</p>
               <strong>{data.durationAlgo} ms</strong>
-              <span className="pill tiny">Similitud</span>
             </div>
             <div className="stat-card">
               <p className="muted">Detalle peliculas</p>
               <strong>{data.durationMovieFetch} ms</strong>
-              <span className="pill tiny">Enriquecido</span>
             </div>
           </div>
 
@@ -115,10 +112,17 @@ const UserDashboard: React.FC = () => {
                   g => g && g.toLowerCase() !== "(no genres listed)"
                 );
                 const genresLabel = cleanedGenres && cleanedGenres.length ? cleanedGenres.join(" / ") : "-";
+                const heroStyle = movie.backdropUrl
+                  ? {
+                      background:
+                        `linear-gradient(180deg, rgba(3, 7, 18, 0.65), rgba(3, 7, 18, 0.85)), url(${movie.backdropUrl})`
+                    }
+                  : undefined;
+                const heroClassName = movie.backdropUrl ? "movie-hero with-backdrop" : "movie-hero";
                 return (
                   <article key={movie.movieId} className="movie-card">
                     <div className="movie-rank">#{movie.rank}</div>
-                    <div className="movie-hero">
+                    <div className={heroClassName} style={heroStyle}>
                       {movie.posterUrl ? (
                         <img src={movie.posterUrl} alt={movie.title} className="movie-poster" loading="lazy" />
                       ) : (
