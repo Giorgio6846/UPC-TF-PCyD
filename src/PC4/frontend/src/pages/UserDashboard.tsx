@@ -4,9 +4,15 @@ import { fetchRecommendedMovies, fetchTmdbImages } from "../api/client";
 import type { JsonMovieResult, ResponseMovieJSON } from "../api/client";
 
 interface MovieWithImages extends JsonMovieResult {
+  year?: number;
   posterUrl?: string | null;
   backdropUrl?: string | null;
 }
+
+const parseYearFromTitle = (title: string): number | undefined => {
+  const match = title.match(/\((\d{4})\)/);
+  return match ? Number(match[1]) : undefined;
+};
 
 const UserDashboard: React.FC = () => {
   const { token, email, displayName } = useAuth();
@@ -15,6 +21,8 @@ const UserDashboard: React.FC = () => {
   const [movies, setMovies] = useState<MovieWithImages[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState<"score" | "year">("score");
+  const [selectedGenre, setSelectedGenre] = useState<string>("all");
 
   const handleFetch = async () => {
     if (!token) {
@@ -47,8 +55,8 @@ const UserDashboard: React.FC = () => {
       if (!data?.results?.length) return;
       const entries = await Promise.all(
         data.results.map(async movie => {
-          const { posterUrl, backdropUrl } = await fetchTmdbImages(movie.tmdb);
-          return { ...movie, posterUrl, backdropUrl } as MovieWithImages;
+          const { posterUrl, backdropUrl } = await fetchTmdbImages(movie.tmdb, movie.imdb);
+          return { ...movie, year: parseYearFromTitle(movie.title), posterUrl, backdropUrl } as MovieWithImages;
         })
       );
       setMovies(entries);
@@ -56,7 +64,37 @@ const UserDashboard: React.FC = () => {
     loadPosters();
   }, [data]);
 
-  const hasMovies = movies?.length;
+  const availableGenres = React.useMemo(() => {
+    const set = new Set<string>();
+    movies.forEach(m => {
+      m.genres?.forEach(g => {
+        if (g && g.toLowerCase() !== "(no genres listed)") set.add(g);
+      });
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [movies]);
+
+  const filteredMovies = React.useMemo(() => {
+    const matchesGenre = (genres?: string[]) => {
+      if (selectedGenre === "all") return true;
+      return genres?.some(g => g === selectedGenre);
+    };
+
+    return movies
+      .filter(m => matchesGenre(m.genres))
+      .sort((a, b) => {
+        if (sortBy === "year") {
+          const ay = a.year ?? -Infinity;
+          const by = b.year ?? -Infinity;
+          if (ay === by) return b.score - a.score;
+          return by - ay;
+        }
+        // score (default)
+        return b.score - a.score;
+      });
+  }, [movies, sortBy, selectedGenre]);
+
+  const hasMovies = filteredMovies?.length;
 
   return (
     <section className="page dashboard">
@@ -86,6 +124,36 @@ const UserDashboard: React.FC = () => {
         </div>
         <p className="micro">Tip: el dataset MovieLens 1M tiene usuarios entre 1 y 600.</p>
         {error && <div className="error-banner">{error}</div>}
+        {data && (
+          <div className="form-row filters-row" style={{ marginTop: "12px" }}>
+            <label className="input-group">
+              <span>Ordenar por</span>
+              <select
+                className="select-solid"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as typeof sortBy)}
+              >
+                <option value="score">Score</option>
+                <option value="year">Año</option>
+              </select>
+            </label>
+            <label className="input-group">
+              <span>Género</span>
+              <select
+                className="select-solid"
+                value={selectedGenre}
+                onChange={e => setSelectedGenre(e.target.value)}
+              >
+                <option value="all">Todos</option>
+                {availableGenres.map(g => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
       </div>
 
       {data ? (
@@ -107,7 +175,7 @@ const UserDashboard: React.FC = () => {
 
           {hasMovies ? (
             <div className="movies-grid">
-              {movies.map(movie => {
+              {filteredMovies.map(movie => {
                 const cleanedGenres = movie.genres?.filter(
                   g => g && g.toLowerCase() !== "(no genres listed)"
                 );
@@ -138,7 +206,15 @@ const UserDashboard: React.FC = () => {
                     <p className="muted">{genresLabel}</p>
                     <div className="ids">
                       {movie.imdb && <span>IMDb {movie.imdb}</span>}
-                      {movie.tmdb && <span>TMDb {movie.tmdb}</span>}
+                      {movie.tmdb && (
+                        <a
+                          href={`https://www.themoviedb.org/movie/${movie.tmdb}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          TMDb {movie.tmdb}
+                        </a>
+                      )}
                     </div>
                   </article>
                 );

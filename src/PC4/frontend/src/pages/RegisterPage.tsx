@@ -4,11 +4,11 @@ import { register as registerApi, login as loginApi } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
 const RegisterPage: React.FC = () => {
-  const [userId, setUserId] = useState("3");
-  const [email, setEmail] = useState("test@test.com");
-  const [password, setPassword] = useState("test1234");
-  const [name, setName] = useState("Fabio");
-  const [lastName, setLastName] = useState("Mancusi");
+  const [userId, setUserId] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,18 +76,18 @@ const RegisterPage: React.FC = () => {
                 min="1"
                 value={userId}
                 onChange={e => setUserId(e.target.value)}
-                placeholder="3"
+                placeholder="Ej. 3"
                 required
               />
             </label>
             <div className="form-row">
               <label className="input-group inline">
                 <span>Nombre</span>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Fabio" required />
+                <input value={name} onChange={e => setName(e.target.value)} placeholder="Tu nombre" required />
               </label>
               <label className="input-group inline">
                 <span>Apellido</span>
-                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Mancusi" required />
+                <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Tus apellidos" required />
               </label>
             </div>
             <label className="input-group">
@@ -96,7 +96,7 @@ const RegisterPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="test@test.com"
+                placeholder="correo@ejemplo.com"
                 required
               />
             </label>
@@ -106,7 +106,7 @@ const RegisterPage: React.FC = () => {
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="test1234"
+                placeholder="********"
                 required
               />
             </label>
