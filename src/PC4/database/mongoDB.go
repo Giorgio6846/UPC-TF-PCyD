@@ -609,7 +609,7 @@ func CreateUserWeb(ctx context.Context, jsonAPI tools.RegisterRequest) error {
 	return err
 }
 
-func FindUserByEmail(ctx context.Context, email string) (*tools.UserInfo, error) {
+func FindUserByEmail(ctx context.Context, email string) (*tools.UserLoginInfo, error) {
 	db := GetDB()
 	usersColl := db.Collection("users")
 
@@ -617,6 +617,31 @@ func FindUserByEmail(ctx context.Context, email string) (*tools.UserInfo, error)
 	opts := options.FindOne().SetProjection(bson.D{
 		{Key: "email", Value: 1},
 		{Key: "password", Value: 1},
+	})
+
+	var u tools.UserLoginInfo
+	err := usersColl.FindOne(ctx, filter, opts).Decode(&u)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("find user by email: %w", err)
+	}
+
+	return &u, nil
+
+}
+
+func FindUserIDByEmail(ctx context.Context, email string) (*tools.UserInfo, error) {
+	db := GetDB()
+	usersColl := db.Collection("users")
+
+	filter := bson.D{{Key: "email", Value: email}}
+	opts := options.FindOne().SetProjection(bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "email", Value: 1},
+		{Key: "name", Value: 1},
+		{Key: "lastName", Value: 1},
 	})
 
 	var u tools.UserInfo
@@ -629,5 +654,44 @@ func FindUserByEmail(ctx context.Context, email string) (*tools.UserInfo, error)
 	}
 
 	return &u, nil
+}
 
+func FindMoviesWithRatingsByUserID(
+	ctx context.Context,
+	userID int,
+) ([]tools.MovieRatings, error) {
+
+	db := GetDB()
+	ratingsColl := db.Collection("ratings")
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.D{
+			{Key: "userId", Value: userID},
+		}}},
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "movies"},
+			{Key: "localField", Value: "movieId"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "movie"},
+		}}},
+		{{Key: "$unwind", Value: "$movie"}},
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 0},
+			{Key: "movie", Value: "$movie"},
+			{Key: "rating", Value: "$rating"},
+		}}},
+	}
+
+	cur, err := ratingsColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("aggregate ratings: %w", err)
+	}
+	defer cur.Close(ctx)
+
+	var results []tools.MovieRatings
+	if err := cur.All(ctx, &results); err != nil {
+		return nil, fmt.Errorf("decode results: %w", err)
+	}
+
+	return results, nil
 }

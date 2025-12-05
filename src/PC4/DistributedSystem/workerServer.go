@@ -59,6 +59,15 @@ func (r *WorkerRegistry) List() []string {
 	return out
 }
 
+// GetWorkers returns the list of currently registered workers.
+// It is exported for other packages (e.g., API) to query worker status.
+func GetWorkers() []string {
+	if registry == nil {
+		return []string{}
+	}
+	return registry.List()
+}
+
 func ServerWorkers() {
 	WP, ok := os.LookupEnv("WORKER_PORT")
 	if !ok {

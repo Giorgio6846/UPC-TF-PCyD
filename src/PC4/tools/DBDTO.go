@@ -41,9 +41,16 @@ type LinksParsed struct {
 	Tmdb    int32
 }
 
-type UserInfo struct {
+type UserLoginInfo struct {
 	Email    string
 	Password string
+}
+
+type UserInfo struct {
+	UserID   int    `bson:"_id" json:"id"`
+	Email    string `bson:"email" json:"email"`
+	Name     string `bson:"name" json:"name"`
+	LastName string `bson:"lastName" json:"lastName"`
 }
 
 type UserVector map[int]float64
@@ -57,4 +64,9 @@ type Recommended struct {
 	MovieID int
 	Score   float64
 	Count   int
+}
+
+type MovieRatings struct {
+	Movie  Movie
+	Rating float64
 }
