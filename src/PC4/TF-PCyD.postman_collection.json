@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "45c72253-9a30-43ed-8012-11d078645854",
+		"_postman_id": "2b2a8e9c-b964-4aad-853f-1ea451b9e94c",
 		"name": "TF-PCyD",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "38748188"
@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"UserID\": 3,\n    \"Email\": \"test@test.com\",\n    \"Password\": \"test1234\",\n    \"Name\": \"Giorgio\",\n    \"LastName\": \"Mancusi\"\n}",
+							"raw": "{\n    \"UserID\": 5,\n    \"Email\": \"test1@test.com\",\n    \"Password\": \"test1234\",\n    \"Name\": \"Giorgio\",\n    \"LastName\": \"Mancusi\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -69,7 +69,7 @@
 			"name": "Similarity",
 			"item": [
 				{
-					"name": "Get recomendation",
+					"name": "Get recomendation movies",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -85,6 +85,34 @@
 							"path": [
 								"api",
 								"similarMovies"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get recomendation users",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"Email\": \"test@test.com\",\n    \"Password\": \"test1234\"\n}"
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/similarUsers?userId=3",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"similarUsers"
 							],
 							"query": [
 								{
@@ -121,6 +149,63 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "UserInfo",
+			"item": [
+				{
+					"name": "UserInfo",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/me",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UserMovies",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/me/movies",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"me",
+								"movies"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Resources",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/resource",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"resource"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"auth": {
@@ -128,7 +213,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0QHRlc3QuY29tIiwiZXhwIjoxNzYzOTY3NzI1LCJpYXQiOjE3NjM4ODEzMjV9.rpXSu8gHe1LweNqrVX_JUVu1szYKnDqg_jPWQJ2Z0II",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0QHRlc3QuY29tIiwiZXhwIjoxNzY0OTgzMzY4LCJpYXQiOjE3NjQ4OTY5Njh9.3kWDfJUzY2TyxeVeFSa1lyrsH_8x7Pivv6EDR0BK_58",
 				"type": "string"
 			}
 		]
