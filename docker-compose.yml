@@ -49,7 +49,17 @@ services:
     restart: always
     ports:
       - "6379:6379"
-
+  frontend:
+    container_name: frontend
+    build: 
+      context: src/PC4/frontend
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_URL: "http://10.0.0.13:8080"
+      VITE_TMDB_KEY: "6cffcef37c0b20c814c8de16da046284"
+      VITE_TMDB_BEARER: "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2Y2ZmY2VmMzdjMGIyMGM4MTRjOGRlMTZkYTA0NjI4NCIsIm5iZiI6MTc2NDczNDcwNC45MzUwMDAyLCJzdWIiOiI2OTJmYjZmMDE5OTUyNzIxZWVjOTVlODQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.DRc1bGqk0O0E0Vvzl0PfyZ9_9ZrCiNkiG9-F0H33fHM"
+    ports:
+      - 5173:5173
 volumes:
     cache:
       driver: local

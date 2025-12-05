@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UserDashboard from "./pages/UserDashboard";
+import ResourcesPage from "./pages/ResourcesPage";
 import Navbar from "./components/Navbar";
 import { useAuth } from "./context/AuthContext";
 
@@ -27,6 +28,14 @@ function App() {
             element={
               <RequireAuth>
                 <UserDashboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/resources"
+            element={
+              <RequireAuth>
+                <ResourcesPage />
               </RequireAuth>
             }
           />

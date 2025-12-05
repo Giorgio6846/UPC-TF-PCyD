@@ -35,6 +35,15 @@ func SimilarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	AmountChunks := r.URL.Query().Get("chunks")
+
+	amountChunks, err := strconv.Atoi(AmountChunks)
+	if err != nil {
+		http.Error(w, "invalid amount of chunks", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("userId:", userID)
 	t0 := time.Now()
 
 	db := database.GetDB()
@@ -70,7 +79,7 @@ func SimilarMoviesSearch(w http.ResponseWriter, r *http.Request) {
 	durationDB := time.Since(t0)
 	t0 = time.Now()
 
-	neighbors, err := ds.ComputeSimilarUsers(userID, 30, userVec)
+	neighbors, err := ds.ComputeSimilarUsers(userID, amountChunks, userVec)
 	if err != nil {
 		log.Fatal("couldn't connect to mongo", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

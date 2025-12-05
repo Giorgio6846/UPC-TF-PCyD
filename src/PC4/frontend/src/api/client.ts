@@ -43,6 +43,13 @@ export interface RegisterResponse {
   message?: string;
 }
 
+export interface MeResponse {
+  userId: number;
+  email: string;
+  name: string;
+  lastName: string;
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
@@ -82,9 +89,13 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
 
 export async function fetchRecommendedMovies(
   token: string,
-  userId: number
+  userId: number,
+  chunks?: number
 ): Promise<ResponseMovieJSON> {
-  const res = await fetch(`${BASE_URL}/api/similarMovies?userId=${userId}`, {
+  const params = new URLSearchParams();
+  params.set("userId", String(userId));
+  if (typeof chunks === "number") params.set("chunks", String(chunks));
+  const res = await fetch(`${BASE_URL}/api/similarMovies?${params.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -93,6 +104,105 @@ export async function fetchRecommendedMovies(
   if (!res.ok) {
     const txt = await res.text();
     throw new Error(txt || "No se pudieron obtener las recomendaciones");
+  }
+
+  return res.json();
+}
+
+export async function fetchMe(token: string): Promise<MeResponse> {
+  const res = await fetch(`${BASE_URL}/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "No se pudo obtener la información del usuario");
+  }
+
+  return res.json();
+}
+
+export interface ResourceResponse {
+  cpu_percent: number;
+  memory_total_kb: number;
+  memory_available_kb: number;
+  memory_used_kb: number;
+  memory_used_percent: number;
+  network_bytes_sent: number;
+  network_bytes_recv: number;
+  workers: string[];
+  timestamp_ms: number;
+}
+
+export async function fetchResources(token: string): Promise<ResourceResponse> {
+  const res = await fetch(`${BASE_URL}/resource`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "No se pudieron obtener los recursos del servidor");
+  }
+
+  return res.json();
+}
+
+export interface MyMovieEntry {
+  Movie: {
+    ID: number;
+    IMDB?: number;
+    TMDB?: number;
+    Title: string;
+    Genres: string[];
+  };
+  Rating: number;
+}
+
+export interface MyMoviesResponse {
+  userId: number;
+  moviesRatings: MyMovieEntry[];
+}
+
+export async function fetchMyMovies(token: string): Promise<MyMoviesResponse> {
+  const res = await fetch(`${BASE_URL}/me/movies`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "No se pudieron obtener las peliculas del usuario");
+  }
+
+  return res.json();
+}
+
+export interface SimilarUser {
+  UserID: number;
+  Similarity: number;
+}
+
+export interface SimilarUsersResponse {
+  similarity: SimilarUser[];
+  durationDB: number;
+  durationAlgo: number;
+}
+
+export async function fetchSimilarUsers(token: string, userId: number): Promise<SimilarUsersResponse> {
+  const res = await fetch(`${BASE_URL}/api/similarUsers?userId=${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(txt || "No se pudieron obtener los usuarios similares");
   }
 
   return res.json();

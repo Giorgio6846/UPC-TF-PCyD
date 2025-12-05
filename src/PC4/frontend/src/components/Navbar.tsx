@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar: React.FC = () => {
@@ -25,27 +25,36 @@ const Navbar: React.FC = () => {
 
   return (
     <header className={`topbar${hidden ? " hidden" : ""}`}>
-      <Link to="/" className="brand">
+      <NavLink to="/" className="brand">
         <span className="brand-mark">MR</span>
         <div className="brand-copy">
           <strong>MovieRec</strong>
         </div>
-      </Link>
+      </NavLink>
 
       <div className="topbar-actions">
+        <nav className="topbar-nav">
+          <NavLink to="/user" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Inicio</NavLink>
+          {token && (
+            <NavLink to="/resources" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>
+              Recursos
+            </NavLink>
+          )}
+        </nav>
+
         {(displayName || email) && <span className="chip">{displayName ?? email}</span>}
         {token ? (
           <button className="ghost-button" onClick={logout}>
-            Cerrar sesion
+            Cerrar sesión
           </button>
         ) : (
           <>
-            <Link className="ghost-button" to="/login">
-              Iniciar sesion
-            </Link>
-            <Link className="btn primary" to="/register">
+            <NavLink to="/login" className="ghost-button">
+              Iniciar sesión
+            </NavLink>
+            <NavLink to="/register" className="btn primary">
               Crear cuenta
-            </Link>
+            </NavLink>
           </>
         )}
       </div>

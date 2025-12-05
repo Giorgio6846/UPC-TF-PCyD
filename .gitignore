@@ -3,3 +3,5 @@ mongo_data
 
 __debug_*
 DNU-*
+
+.env
